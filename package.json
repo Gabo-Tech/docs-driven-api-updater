@@ -1,6 +1,6 @@
 {
   "name": "docs-driven-api-updater",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Universal docs-driven API updater that crawls official docs, plans safe code updates, and applies changes locally or in CI.",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,7 +17,7 @@
     }
   },
   "bin": {
-    "docs-driven-api-updater": "./dist/cli/index.js"
+    "docs-driven-api-updater": "dist/cli/index.js"
   },
   "files": [
     "dist",

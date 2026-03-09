@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.1] - 2026-03-09
+
+### Fixed
+- Corrected published `bin` metadata to ensure `npx docs-driven-api-updater` resolves properly.
+- Added release hardening docs (`CONTRIBUTING.md`) and prepublish quality gate in package scripts.
+
 ## [1.0.0] - 2026-03-09
 
 ### Added
