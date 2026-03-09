@@ -1,0 +1,10 @@
+{
+  "integrations": [
+    {
+      "name": "stripe",
+      "docUrls": ["https://docs.stripe.com/api", "https://docs.stripe.com/api/errors"],
+      "methodsFile": "src/integrations/stripe/supported-methods.json",
+      "targetDir": "src/integrations/stripe"
+    }
+  ]
+}

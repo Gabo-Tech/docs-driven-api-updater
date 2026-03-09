@@ -1,0 +1,105 @@
+name: Auto Docs-Driven API Update PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only (no file apply)"
+        required: false
+        default: "false"
+      fallback_models:
+        description: "Optional comma-separated fallback model list"
+        required: false
+        default: ""
+      max_model_attempts:
+        description: "Optional max model attempts override"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build CLI
+        run: npm run build
+
+      - name: Run docs-driven updater
+        env:
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          OLLAMA_HOST: ${{ secrets.OLLAMA_HOST }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
+          FALLBACK_MODELS: ${{ secrets.FALLBACK_MODELS }}
+          MAX_MODEL_ATTEMPTS: ${{ secrets.MAX_MODEL_ATTEMPTS }}
+        run: |
+          DRY_RUN_INPUT="${{ github.event.inputs.dry_run || 'false' }}"
+          EXTRA_ARGS=""
+          if [ -n "${{ github.event.inputs.fallback_models }}" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --fallback-models '${{ github.event.inputs.fallback_models }}'"
+          fi
+          if [ -n "${{ github.event.inputs.max_model_attempts }}" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --max-model-attempts '${{ github.event.inputs.max_model_attempts }}'"
+          fi
+          if [ "$DRY_RUN_INPUT" = "true" ]; then
+            node dist/cli/index.js update --ci --open-pr --yes --dry-run $EXTRA_ARGS
+          else
+            node dist/cli/index.js update --ci --open-pr --yes $EXTRA_ARGS
+          fi
+
+      - name: Upload updater artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: updater-artifacts
+          path: .artifacts
+          if-no-files-found: ignore
+
+      - name: Read PR metadata
+        id: prmeta
+        run: |
+          if [ -f .artifacts/pr-title.txt ]; then
+            echo "title=$(cat .artifacts/pr-title.txt)" >> $GITHUB_OUTPUT
+          else
+            echo "title=chore: docs-driven API update" >> $GITHUB_OUTPUT
+          fi
+          if [ -f .artifacts/pr-body.md ]; then
+            {
+              echo "body<<EOF"
+              cat .artifacts/pr-body.md
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          else
+            {
+              echo "body<<EOF"
+              echo "Automated docs-driven API update."
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: docs-driven API compatibility update"
+          title: ${{ steps.prmeta.outputs.title }}
+          body: ${{ steps.prmeta.outputs.body }}
+          branch: "chore/auto-docs-driven-update"
+          delete-branch: true

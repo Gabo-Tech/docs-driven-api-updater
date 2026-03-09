@@ -1,0 +1,5 @@
+[
+  "customers.create",
+  "customers.retrieve",
+  "charges.create"
+]
