@@ -13,9 +13,6 @@ export default defineConfig([
     clean: true,
     dts: true,
     target: "node18",
-    platform: "node",
-    banner: {
-      js: "#!/usr/bin/env node"
-    }
+    platform: "node"
   }
 ]);

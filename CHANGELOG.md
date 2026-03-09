@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.0.2] - 2026-03-09
+
+### Fixed
+- Removed duplicate shebang injection in CLI build output by stopping `tsup` banner shebang usage.
+- Restored executable CLI behavior so `npx docs-driven-api-updater --help` works on modern Node versions.
+
 ## [1.0.1] - 2026-03-09
 
 ### Fixed

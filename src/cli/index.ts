@@ -12,7 +12,7 @@ const program = new Command();
 program
   .name("docs-driven-api-updater")
   .description("Docs-driven universal API integration updater")
-  .version("1.0.0");
+  .version("1.0.2");
 
 program
   .command("init")
